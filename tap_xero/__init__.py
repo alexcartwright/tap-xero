@@ -139,7 +139,7 @@ def main_impl():
             # Write TAP_XERO_REFRESH_TOKEN back to Google Secret Manager
             LOGGER.info("Writing back TAP_XERO_REFRESH_TOKEN to Google Secret Manager")
             
-            client = secretmanager.SecretManagerServiceClient.from_service_account_file('/home/alexc/tap-xero/dist/gandar-helion-example1-b7f020537e0d.json')
+            client = secretmanager.SecretManagerServiceClient.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
             version = client.add_secret_version(request={"parent": 'projects/gandar-helion-example1/secrets/TAP_XERO_REFRESH_TOKEN', "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})      
 
 def main():
