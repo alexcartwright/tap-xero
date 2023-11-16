@@ -7,6 +7,7 @@ from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .client import XeroClient
 from .context import Context
+from google.cloud import secretmanager
 
 REQUIRED_CONFIG_KEYS = [
     "start_date",
@@ -119,6 +120,12 @@ def main_impl():
         discover(Context(args.config, {}, {}, args.config_path)).dump()
         print()
     else:
+        
+        # Google Secret Manager Client: Notes
+        # Access TAP_XERO_REFRESH_TOKEN from Google Secret Manager (not used, injected via Env Vars)
+        # response = client.access_secret_version(request={"name": 'projects/gandar-helion-example1/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest'})
+        # payload = response.payload.data.decode("UTF-8")
+
         if args.catalog:
             catalog = args.catalog
         else:
@@ -126,6 +133,14 @@ def main_impl():
             catalog = discover(Context(args.config, {}, {}, args.config_path))
 
         sync(Context(args.config, args.state, catalog, args.config_path))
+
+        if os.getenv("GOOGLE_SECRET_MANAGER", "false").lower() == "true":
+        
+            # Write TAP_XERO_REFRESH_TOKEN back to Google Secret Manager
+            LOGGER.info("Writing back TAP_XERO_REFRESH_TOKEN to Google Secret Manager")
+            
+            client = secretmanager.SecretManagerServiceClient.from_service_account_file('/home/alexc/tap-xero/dist/gandar-helion-example1-b7f020537e0d.json')
+            version = client.add_secret_version(request={"parent": 'projects/gandar-helion-example1/secrets/TAP_XERO_REFRESH_TOKEN', "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})      
 
 def main():
     try:

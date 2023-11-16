@@ -11,6 +11,7 @@ setup(name="tap-xero",
       install_requires=[
           "singer-python==5.9.0",
           "requests==2.20.0",
+          "google-cloud-secret-manager==2.16.4",
       ],
       extras_require={
           'dev': [
