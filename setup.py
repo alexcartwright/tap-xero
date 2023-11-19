@@ -9,7 +9,7 @@ setup(name="tap-xero",
       classifiers=["Programming Language :: Python :: 3 :: Only"],
       py_modules=["tap_xero"],
       install_requires=[
-          "singer-python==5.9.0",
+          "singer-python==5.9.1",
           "requests==2.20.0",
           "google-cloud-secret-manager==2.16.4",
       ],
