@@ -115,17 +115,13 @@
     },
     "ValidationErrors": {
       "$ref": "validation_errors"
-    },
-    "Attachments": {
-      "$ref": "attachments"
     }
   },
   "tap_schema_dependencies": [
     "contacts",
     "line_items",
     "users",
-    "validation_errors",
-    "attachments"
+    "validation_errors"
   ],
   "additionalProperties": false
 }

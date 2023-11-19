@@ -334,9 +334,6 @@
         "boolean"
       ]
     },
-    "Attachments": {
-      "$ref": "attachments"
-    },
     "HasValidationErrors": {
       "type": [
         "null",
@@ -354,7 +351,6 @@
     "branding_themes",
     "tracking_categories",
     "validation_errors",
-    "attachments",
     "payment_terms"
   ],
   "additionalProperties": false
