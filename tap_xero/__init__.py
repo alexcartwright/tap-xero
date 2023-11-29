@@ -116,15 +116,20 @@ def sync(ctx):
 
 def main_impl():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
+    
+    if os.getenv("GOOGLE_SECRET_MANAGER", "false").lower() == "true":
+
+        # Access TAP_XERO_REFRESH_TOKEN from Google Secret Manager
+        LOGGER.info("Getting TAP_XERO_REFRESH_TOKEN from Google Secret Manager")
+        client = secretmanager.SecretManagerServiceClient.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        secret_version_name = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest"
+        response = client.access_secret_version(request={"name": secret_version_name})
+        args.config['refresh_token'] = response.payload.data.decode("UTF-8")    
+    
     if args.discover:
         discover(Context(args.config, {}, {}, args.config_path)).dump()
         print()
     else:
-        
-        # Google Secret Manager Client: Notes
-        # Access TAP_XERO_REFRESH_TOKEN from Google Secret Manager (not used, injected via Env Vars)
-        # response = client.access_secret_version(request={"name": 'projects/gandar-helion-example1/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest'})
-        # payload = response.payload.data.decode("UTF-8")
 
         if args.catalog:
             catalog = args.catalog
@@ -138,8 +143,6 @@ def main_impl():
         
         # Write TAP_XERO_REFRESH_TOKEN back to Google Secret Manager
         LOGGER.info("Writing back TAP_XERO_REFRESH_TOKEN to Google Secret Manager")
-            
-        client = secretmanager.SecretManagerServiceClient.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
         secret = secretmanager.SecretManagerServiceClient.secret_path(os.getenv("GOOGLE_PROJECT_ID"), 'TAP_XERO_REFRESH_TOKEN')
         version = client.add_secret_version(request={"parent": secret, "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})      
 
