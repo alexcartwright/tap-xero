@@ -122,9 +122,14 @@ def main_impl():
         # Access TAP_XERO_REFRESH_TOKEN from Google Secret Manager
         LOGGER.info("Getting TAP_XERO_REFRESH_TOKEN from Google Secret Manager")
         client = secretmanager.SecretManagerServiceClient.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        secret_version_name = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest"
-        response = client.access_secret_version(request={"name": secret_version_name})
+        secret_TAP_XERO_REFRESH_TOKEN = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest"
+        secret_XERO_OAUTH_CREDENTIALS = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/XERO_OAUTH_CREDENTIALS/versions/latest"
+        response = client.access_secret_version(request={"name": secret_TAP_XERO_REFRESH_TOKEN})
         args.config['refresh_token'] = response.payload.data.decode("UTF-8")    
+        response = client.access_secret_version(request={"name": secret_XERO_OAUTH_CREDENTIALS})
+        response_json = json.loads(response.payload.data.decode("UTF-8"))
+        args.config['client_id'] = response_json["client_id"]
+        args.config['client_secret'] = response_json["client_secret"]
     
     if args.discover:
         discover(Context(args.config, {}, {}, args.config_path)).dump()
