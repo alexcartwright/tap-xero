@@ -149,7 +149,14 @@ def main_impl():
         # Write TAP_XERO_REFRESH_TOKEN back to Google Secret Manager
         LOGGER.info("Writing back TAP_XERO_REFRESH_TOKEN to Google Secret Manager")
         secret = secretmanager.SecretManagerServiceClient.secret_path(os.getenv("GOOGLE_PROJECT_ID"), 'TAP_XERO_REFRESH_TOKEN')
-        version = client.add_secret_version(request={"parent": secret, "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})      
+        version = client.add_secret_version(request={"parent": secret, "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})  
+
+        # Destroy old secret version (to avoid billing)
+        newVersionNumber = int(version.name.split('/').pop())
+        oldVersionNumber = newVersionNumber - 1
+        oldVersion = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/{oldVersionNumber}"
+        response = client.destroy_secret_version(request={"name": oldVersion})
+        LOGGER.info(f"Destroyed version {oldVersionNumber} TAP_XERO_REFRESH_TOKEN from Google Secret Manager")    
 
 def main():
     try:
