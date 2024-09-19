@@ -122,8 +122,8 @@ def main_impl():
         # Access TAP_XERO_REFRESH_TOKEN from Google Secret Manager
         LOGGER.info("Getting TAP_XERO_REFRESH_TOKEN from Google Secret Manager")
         client = secretmanager.SecretManagerServiceClient.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        secret_TAP_XERO_REFRESH_TOKEN = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/latest"
-        secret_XERO_OAUTH_CREDENTIALS = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/XERO_OAUTH_CREDENTIALS/versions/latest"
+        secret_TAP_XERO_REFRESH_TOKEN = f"{os.environ['SECRET_XERO_REFRESH_TOKEN']}/versions/latest"
+        secret_XERO_OAUTH_CREDENTIALS = f"{os.environ['SECRET_XERO_OAUTH_CREDENTIALS']}/versions/latest"
         response = client.access_secret_version(request={"name": secret_TAP_XERO_REFRESH_TOKEN})
         args.config['refresh_token'] = response.payload.data.decode("UTF-8")    
         response = client.access_secret_version(request={"name": secret_XERO_OAUTH_CREDENTIALS})
@@ -148,13 +148,13 @@ def main_impl():
         
         # Write TAP_XERO_REFRESH_TOKEN back to Google Secret Manager
         LOGGER.info("Writing back TAP_XERO_REFRESH_TOKEN to Google Secret Manager")
-        secret = secretmanager.SecretManagerServiceClient.secret_path(os.getenv("GOOGLE_PROJECT_ID"), 'TAP_XERO_REFRESH_TOKEN')
+        secret = f"{os.environ['SECRET_XERO_REFRESH_TOKEN']}"
         version = client.add_secret_version(request={"parent": secret, "payload": {"data": args.config['refresh_token'].encode("UTF-8")}})  
 
         # Destroy old secret version (to avoid billing)
         newVersionNumber = int(version.name.split('/').pop())
         oldVersionNumber = newVersionNumber - 1
-        oldVersion = f"projects/{os.environ['GOOGLE_PROJECT_ID']}/secrets/TAP_XERO_REFRESH_TOKEN/versions/{oldVersionNumber}"
+        oldVersion = f"{os.environ['SECRET_XERO_REFRESH_TOKEN']}/versions/{oldVersionNumber}"
         response = client.destroy_secret_version(request={"name": oldVersion})
         LOGGER.info(f"Destroyed version {oldVersionNumber} TAP_XERO_REFRESH_TOKEN from Google Secret Manager")    
 
